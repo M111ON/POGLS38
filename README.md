@@ -26,6 +26,19 @@ python3 python/pogls_memory_fabric.py
 ## Quick Start — Benchmark (Colab/Kaggle)
 Upload `benchmark/pogls_hydra_colab.py` → run single cell
 
+## Quick Start — Local Project Dashboard
+```bash
+python3 python/pogls_dashboard_local.py
+# open http://127.0.0.1:8787
+# manifest: python/pogls_dashboard_manifest.yaml
+# Windows paths example inside manifest:
+#   path: C:\POGLS38
+#   path: C:\POGLS4
+# use exclude_globs to ignore duplicate zip/version folders from source scanning
+# export from UI: JSON / Markdown buttons
+# header shows local machine spec (OS / CPU / RAM / Python / GPU hint)
+```
+
 ## Status
 - All phases PASS on 5 platforms (Colab CPU/T4, Kaggle CPU/T4/P100)
 - Kaggle P100: 1,031B audit ops in 60s (>1 Trillion) ✅
