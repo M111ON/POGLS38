@@ -1,0 +1,46 @@
+version: 1
+repos:
+  - name: POGLS38
+    path: ..
+    role: live
+    track: true
+  - name: POGLS4
+    path: ../../POGLS4
+    role: durable
+    track: true
+modules:
+  temporal:
+    tracked_paths:
+      - pogls_38_temporal.h
+      - test/test_38_temporal.c
+  hydra:
+    tracked_paths:
+      - pogls_38_hydra.h
+      - test/test_38_hydra.c
+      - test/test_38_steal.c
+  wiring:
+    tracked_paths:
+      - pogls_38_wiring.h
+      - test/test_38_wiring.c
+  repair:
+    tracked_paths:
+      - pogls_38_repair.h
+      - test/test_38_repair.c
+  fabric:
+    tracked_paths:
+      - python/pogls_memory_fabric.py
+      - python/pogls_ingest.py
+  federation:
+    tracked_paths:
+      - federation_design.md
+      - core_c/pogls_snapshot.c
+      - core_c/pogls_snapshot.h
+links:
+  - source: POGLS38:federation_design.md
+    target: POGLS4:README.md
+    kind: cross_repo
+    label: federation design anchor
+exports:
+  formats:
+    - json
+    - markdown
