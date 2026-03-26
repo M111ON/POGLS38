@@ -37,7 +37,6 @@ python3 python/pogls_dashboard_local.py
 # use exclude_globs to ignore duplicate zip/version folders from source scanning
 # export from UI: JSON / Markdown buttons
 # header shows local machine spec (OS / CPU / RAM / Python / GPU hint)
-# archive table shows inferred world count from ZIP contents (e.g., world_a/world_b/world_c)
 ```
 
 ## Status
