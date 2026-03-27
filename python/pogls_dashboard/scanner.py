@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import ast
+import fnmatch
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 
 from .models import FileNode, ManifestLink, ModuleStatus, RepoConfig
 
 TEXT_EXTS = {".c", ".cc", ".cpp", ".cu", ".h", ".hpp", ".hh", ".py", ".pyw", ".js", ".ts", ".md", ".txt", ".json", ".yaml", ".yml"}
+ARCHIVE_EXTS = {".zip"}
 IGNORE_DIRS = {".git", "__pycache__", ".mypy_cache", ".pytest_cache", "node_modules", "dist", "build", ".venv", "venv", ".idea", ".vscode"}
 MODULE_PATTERNS = [
     ("hydra", ["hydra", "steal", "spawn"]),
@@ -26,10 +28,26 @@ PUBLIC_ENDPOINT_HINTS = ["/remember", "/recall", "/status", "/snapshot"]
 CHECKBOX_RE = re.compile(r"^\s*- \[(?P<done>[ xX])\] (?P<label>.+?)\s*$")
 BACKTICK_FILE_RE = re.compile(r"`([^`]+)`")
 INCLUDE_RE = re.compile(r'^\s*#\s*include\s+"([^"]+)"')
+VERSION_RE = re.compile(r"[vV](\d+(?:[._-]\d+)?)")
 
 
 def _safe_rel(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
+
+
+def _is_excluded(rel: str, globs: List[str]) -> bool:
+    rel_posix = rel.replace("\\", "/")
+    base = Path(rel_posix).name
+    for pattern in globs:
+        pat = pattern.replace("\\", "/")
+        if fnmatch.fnmatch(rel_posix, pat) or fnmatch.fnmatch(base, pat):
+            return True
+    return False
+
+
+def _extract_version(name: str) -> str:
+    m = VERSION_RE.search(name)
+    return m.group(1) if m else ""
 
 
 class DashboardScanner:
@@ -42,6 +60,8 @@ class DashboardScanner:
         self.repo_summaries: Dict[str, dict] = {}
         self.roadmaps: Dict[str, List[dict]] = defaultdict(list)
         self.runtime_checks: Dict[str, List[dict]] = defaultdict(list)
+        self.archives: Dict[str, List[dict]] = defaultdict(list)
+        self.duplicates: List[dict] = []
         self._abs_to_id: Dict[str, str] = {}
         self._basename_to_ids: Dict[str, List[str]] = defaultdict(list)
         self._py_module_to_ids: Dict[str, List[str]] = defaultdict(list)
@@ -53,6 +73,7 @@ class DashboardScanner:
         self._apply_manifest_tracking()
         self._apply_manifest_links()
         self._build_runtime_hints()
+        self._build_duplicates()
         self._summaries()
         return self.to_dict()
 
@@ -87,10 +108,20 @@ class DashboardScanner:
             for path in root.rglob("*"):
                 if not path.is_file() or any(part in IGNORE_DIRS for part in path.parts):
                     continue
+                rel = _safe_rel(path, root)
                 ext = path.suffix.lower()
+                if ext in ARCHIVE_EXTS:
+                    self.archives[repo.name].append({
+                        "repo": repo.name,
+                        "path": rel,
+                        "size": path.stat().st_size,
+                        "version": _extract_version(path.name),
+                        "excluded": _is_excluded(rel, repo.exclude_globs),
+                    })
+                if _is_excluded(rel, repo.exclude_globs):
+                    continue
                 if ext and ext not in TEXT_EXTS:
                     continue
-                rel = _safe_rel(path, root)
                 node = FileNode(repo=repo.name, path=rel, abs_path=str(path.resolve()), ext=ext, size=path.stat().st_size, module=self._module_for(rel))
                 file_id = node.file_id
                 self.files[file_id] = node
@@ -229,7 +260,7 @@ class DashboardScanner:
                     self.files[link.target].roadmap.add(f"link: {link.label}")
 
     def _build_runtime_hints(self) -> None:
-        for file_id, node in self.files.items():
+        for node in self.files.values():
             if not node.path.endswith(("pogls_memory_fabric.py", "pogls_gui.pyw")):
                 continue
             text = self._read_text(node.abs_path)
@@ -237,6 +268,15 @@ class DashboardScanner:
             if hints:
                 self.runtime_checks[node.repo].append({"file": node.path, "kind": "endpoints", "items": hints})
                 self.modules[node.module].runtime_endpoints.update(hints)
+
+    def _build_duplicates(self) -> None:
+        by_basename: Dict[str, List[str]] = defaultdict(list)
+        for file_id, node in self.files.items():
+            by_basename[Path(node.path).name].append(file_id)
+        for name, ids in by_basename.items():
+            if len(ids) > 1:
+                self.duplicates.append({"basename": name, "count": len(ids), "files": sorted(ids)})
+        self.duplicates.sort(key=lambda item: (-item["count"], item["basename"]))
 
     def _summaries(self) -> None:
         for repo in self.repos:
@@ -257,6 +297,8 @@ class DashboardScanner:
                 "roadmap_done": sum(item["done"] for item in self.roadmaps.get(repo.name, [])),
                 "edge_counts": dict(edge_counts),
                 "runtime_checks": len(self.runtime_checks.get(repo.name, [])),
+                "archive_count": len(self.archives.get(repo.name, [])),
+                "excluded_globs": repo.exclude_globs,
             }
 
     def to_dict(self) -> dict:
@@ -282,4 +324,6 @@ class DashboardScanner:
             "repos": self.repo_summaries,
             "roadmaps": self.roadmaps,
             "runtime_checks": self.runtime_checks,
+            "archives": self.archives,
+            "duplicates": self.duplicates,
         }

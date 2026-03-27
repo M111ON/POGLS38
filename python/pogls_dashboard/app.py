@@ -13,6 +13,7 @@ from urllib.parse import parse_qs, urlparse
 from .exporters import export_json, export_markdown
 from .manifest import load_manifest, resolve_manifest
 from .scanner import DashboardScanner
+from .system_info import collect_system_info
 from .views import HTML
 
 
@@ -43,8 +44,11 @@ class DashboardState:
                 "generated_at": time.time(),
                 "manifest_path": str(self.manifest_path),
                 "export_formats": resolved["export_formats"],
+                "system": collect_system_info(),
                 "files": data["files"],
                 "repos": repos,
+                "archives": data.get("archives", {}),
+                "duplicates": data.get("duplicates", []),
                 "overview": {
                     "repo_count": len(repos),
                     "file_count": len(data["files"]),

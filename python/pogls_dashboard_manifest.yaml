@@ -1,13 +1,25 @@
 version: 1
+# Windows example:
+# repos:
+#   - name: POGLS38
+#     path: C:\POGLS38
+#   - name: POGLS4
+#     path: C:\POGLS4
 repos:
   - name: POGLS38
     path: ..
     role: live
     track: true
+    exclude_globs:
+      - zip/**
+      - '*.zip'
   - name: POGLS4
     path: ../../POGLS4
     role: durable
     track: true
+    exclude_globs:
+      - zip/**
+      - '*.zip'
 modules:
   temporal:
     tracked_paths:

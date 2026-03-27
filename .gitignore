@@ -137,9 +137,6 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-qrpn_system.zip
+pogls_update371-377_world3.zip
 pogls_update371-379_world3.zip
-*.ipynb
-NotebookLM Mind Map.png
-NotebookLM Mind Map.png
-*.ipynb
+qrpn_system.zip

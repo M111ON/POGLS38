@@ -11,6 +11,7 @@ class RepoConfig:
     path: str
     role: str = "project"
     track: bool = True
+    exclude_globs: List[str] = field(default_factory=list)
 
 
 @dataclass

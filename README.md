@@ -31,8 +31,12 @@ Upload `benchmark/pogls_hydra_colab.py` → run single cell
 python3 python/pogls_dashboard_local.py
 # open http://127.0.0.1:8787
 # manifest: python/pogls_dashboard_manifest.yaml
-# optional extra repo: --repo POGLS4=/workspace/POGLS4
+# Windows paths example inside manifest:
+#   path: C:\POGLS38
+#   path: C:\POGLS4
+# use exclude_globs to ignore duplicate zip/version folders from source scanning
 # export from UI: JSON / Markdown buttons
+# header shows local machine spec (OS / CPU / RAM / Python / GPU hint)
 ```
 
 ## Status

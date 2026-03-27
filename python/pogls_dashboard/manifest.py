@@ -12,10 +12,16 @@ repos:
     path: ..
     role: live
     track: true
+    exclude_globs:
+      - zip/**
+      - *.zip
   - name: POGLS4
     path: ../../POGLS4
     role: durable
     track: true
+    exclude_globs:
+      - zip/**
+      - *.zip
 modules:
   temporal:
     tracked_paths:
@@ -71,7 +77,15 @@ def resolve_manifest(base_dir: Path, manifest: dict, cli_repos: List[Tuple[str, 
             continue
         name = item["name"]
         path = (base_dir / item.get("path", ".")).resolve()
-        repos.append(RepoConfig(name=name, path=str(path), role=item.get("role", "project"), track=True))
+        repos.append(
+            RepoConfig(
+                name=name,
+                path=str(path),
+                role=item.get("role", "project"),
+                track=True,
+                exclude_globs=list(item.get("exclude_globs") or []),
+            )
+        )
         seen.add(name)
     for name, path in cli_repos:
         if name not in seen:
