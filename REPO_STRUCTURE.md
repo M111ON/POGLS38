@@ -3,6 +3,17 @@
 
 ---
 
+## Implementation Note (2026-03-27)
+
+Canonical directories have been materialized in-repo:
+- `pogls_core/`
+- `POGLS4/`
+- `POGLS38/`
+
+See `CANONICAL_LAYOUT_MAP.md` for active source-of-truth vs legacy/archive mapping and edit policy.
+
+---
+
 ## Recommended Layout
 
 ```
