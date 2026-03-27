@@ -43,3 +43,13 @@ python3 python/pogls_dashboard_local.py
 - All phases PASS on 5 platforms (Colab CPU/T4, Kaggle CPU/T4/P100)
 - Kaggle P100: 1,031B audit ops in 60s (>1 Trillion) ✅
 - fail=0 across all runs ✅
+
+
+## Build Include Strategy (Locked)
+```bash
+# keep source includes short, e.g. #include "pogls_engine_slice.h"
+# always add this include root during compile:
+-I pogls_core
+# add -I . or -I core_c only when target needs local headers
+```
+

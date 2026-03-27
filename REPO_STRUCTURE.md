@@ -91,34 +91,17 @@ core_c/ — ห้ามแตะเด็ดขาด
 
 ---
 
-## Build Commands
+## Build Commands (Current Repo Layout)
 
 ```bash
-# POGLS4 bridge test
-gcc -std=c11 -O2 -D_POSIX_C_SOURCE=200809L \
-  pogls_core/core_c/pogls_delta.c \
-  pogls_core/core_c/pogls_delta_world_b.c \
-  POGLS4/tests/test_bridge_compile.c \
-  -I pogls_core/ -I POGLS4/ \
-  -o test_bridge
+# include strategy (LOCKED): always add -I pogls_core
+# optional local headers: add -I . (repo root) and/or -I core_c
 
-# POGLS38 hydra thin
-gcc -std=c11 -O2 -D_POSIX_C_SOURCE=200809L \
-  POGLS38/tests/test_38_hydra_thin.c \
-  -I pogls_core/ -I POGLS38/ \
-  -o test_38_hydra_thin
+# GiantShadow smoke test
+gcc -std=c11 -O2 -D_POSIX_C_SOURCE=200809L   test_38_giant_shadow.c   -I pogls_core -I . -lm   -o test_38_giant_shadow
 
-# POGLS38 giant shadow
-gcc -std=c11 -O2 -D_POSIX_C_SOURCE=200809L \
-  POGLS38/tests/test_38_giant_shadow.c \
-  -I pogls_core/ -I POGLS38/ -lm \
-  -o test_38_giant_shadow
-
-# POGLS38 feedback loop
-gcc -std=c11 -O2 -D_POSIX_C_SOURCE=200809L \
-  POGLS38/tests/test_38_feedback.c \
-  -I pogls_core/ -I POGLS38/ -lm \
-  -o test_38_feedback
+# Core compute-stack compile check (object only)
+gcc -std=c11 -O2 -D_POSIX_C_SOURCE=200809L   -c core_c/pogls_compute_stack.c   -I pogls_core -I core_c -I .   -o /tmp/pogls_compute_stack.o
 ```
 
 ---
@@ -206,20 +189,13 @@ git commit -m "POGLS38: Hydra v3 + GiantShadow + ReflexFeedback"
 
 ---
 
-## Include Path Update (after migration)
+## Include Path Strategy (LOCKED)
 
 ```c
-// BEFORE (flat layout):
-#include "pogls_engine_slice.h"
-#include "pogls_federation.h"
-
-// AFTER (submodule layout):
-#include "pogls_core/pogls_engine_slice.h"
-#include "pogls_core/pogls_federation.h"
-
-// OR with -I flag:
-// gcc -I pogls_core/ ...
-// then keep: #include "pogls_engine_slice.h"  ← no change needed
+// Strategy used across this repo:
+//   1) keep source includes short: #include "pogls_engine_slice.h"
+//   2) compile with: -I pogls_core
+// This avoids mixed styles and keeps include graph stable.
 ```
 
 ---
