@@ -19,6 +19,7 @@ def export_markdown(snapshot: dict) -> bytes:
         f"- Modules: {overview.get('module_count', 0)}",
         f"- Roadmap: {overview.get('roadmap_done', 0)}/{overview.get('roadmap_total', 0)}",
         f"- Duplicate basenames: {len(snapshot.get('duplicates', []))}",
+        f"- Deprecated files hidden: {len(snapshot.get('deprecated_files', []))}",
         "",
         "## System",
         f"- Host: {system.get('hostname', 'unknown')}",
@@ -40,6 +41,11 @@ def export_markdown(snapshot: dict) -> bytes:
         lines.append("## Duplicate Basenames")
         for item in snapshot["duplicates"][:15]:
             lines.append(f"- **{item['basename']}** ×{item['count']}")
+        lines.append("")
+    if snapshot.get("deprecated_files"):
+        lines.append("## Deprecated Files (Hidden from Active Views)")
+        for file_id in snapshot["deprecated_files"][:30]:
+            lines.append(f"- {file_id}")
         lines.append("")
     lines.append("## Modules")
     for repo_name, repo in snapshot.get("repos", {}).items():

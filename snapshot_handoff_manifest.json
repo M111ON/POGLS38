@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "naming_convention": "<component>_v<semver-or-date>_<purpose>.<ext>",
+  "constraints": {
+    "allow_spaces": false,
+    "allow_copy_suffix": false,
+    "disallowed_patterns": [
+      " (1)",
+      " (2)",
+      "copy"
+    ]
+  },
+  "modules": [
+    {
+      "module": "hydra",
+      "canonical_module_file": "core_c/pogls_hydra.h",
+      "superseded_variants": [
+        "core_c/pogls_hydra_v36.h",
+        "pogls38_hydra_thin.h"
+      ],
+      "source_archive": "pogls2_v372_Slice_.zip",
+      "source_archive_date": "2026-03-27"
+    },
+    {
+      "module": "federation",
+      "canonical_module_file": "core_c/pogls_snapshot.c",
+      "superseded_variants": [
+        "docs/HANDOFF_V4X_BRIDGE_2026-03-26.md"
+      ],
+      "source_archive": "pogls2_v372_Slice_.zip",
+      "source_archive_date": "2026-03-27"
+    }
+  ]
+}

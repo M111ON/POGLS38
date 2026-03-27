@@ -30,14 +30,28 @@ class DashboardState:
         resolved = resolve_manifest(self.manifest_path.parent, raw_manifest, self.cli_repos)
         scanner = DashboardScanner(resolved["repos"], resolved["module_tracking"], resolved["links"])
         data = scanner.scan()
+        deprecated_files = set(data.get("deprecated_files", []))
         repos = {}
         for name, summary in data["repos"].items():
+            active_files = {fid: file for fid, file in data["files"].items() if file["repo"] == name and fid not in deprecated_files}
             repos[name] = {
                 "summary": summary,
-                "modules": {k: v for k, v in data["modules"].items() if any(fid.startswith(f"{name}:") for fid in v["files"]) or v["tracked_paths"]},
+                "modules": {
+                    k: {
+                        **v,
+                        "files": [fid for fid in v["files"] if fid not in deprecated_files],
+                        "tests": [fid for fid in v["tests"] if fid not in deprecated_files],
+                        "docs": [fid for fid in v["docs"] if fid not in deprecated_files],
+                        "tracked_paths": [fid for fid in v["tracked_paths"] if fid not in deprecated_files],
+                    }
+                    for k, v in data["modules"].items()
+                    if any(fid.startswith(f"{name}:") and fid not in deprecated_files for fid in v["files"]) or any(
+                        fid.startswith(f"{name}:") and fid not in deprecated_files for fid in v["tracked_paths"]
+                    )
+                },
                 "roadmap": data["roadmaps"].get(name, []),
                 "runtime_checks": data["runtime_checks"].get(name, []),
-                "files": {fid: file for fid, file in data["files"].items() if file["repo"] == name},
+                "files": active_files,
             }
         with self.lock:
             self.snapshot_data = {
@@ -45,13 +59,15 @@ class DashboardState:
                 "manifest_path": str(self.manifest_path),
                 "export_formats": resolved["export_formats"],
                 "system": collect_system_info(),
-                "files": data["files"],
+                "files": {fid: file for fid, file in data["files"].items() if fid not in deprecated_files},
                 "repos": repos,
                 "archives": data.get("archives", {}),
                 "duplicates": data.get("duplicates", []),
+                "deprecated_files": sorted(deprecated_files),
+                "artifact_manifest": data.get("artifact_manifest", {}),
                 "overview": {
                     "repo_count": len(repos),
-                    "file_count": len(data["files"]),
+                    "file_count": len([fid for fid in data["files"] if fid not in deprecated_files]),
                     "module_count": len(data["modules"]),
                     "roadmap_total": sum(len(r["roadmap"]) for r in repos.values()),
                     "roadmap_done": sum(sum(item["done"] for item in r["roadmap"]) for r in repos.values()),
