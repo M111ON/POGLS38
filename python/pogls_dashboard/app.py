@@ -115,23 +115,18 @@ def parse_repo_arg(raw: str) -> Tuple[str, Path]:
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="POGLS control room")
-    ap.add_argument("--manifest", default="pogls_dashboard_manifest.yaml")
+    ap.add_argument("--manifest", default="python/pogls_dashboard_manifest.yaml")
     ap.add_argument("--repo", action="append", default=[], help="Optional extra repo path or NAME=PATH")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8787)
     args = ap.parse_args(argv)
 
     cli_repos = [parse_repo_arg(item) for item in args.repo]
-    manifest_path = Path(args.manifest).expanduser()
-    if not manifest_path.exists() and args.manifest == "pogls_dashboard_manifest.yaml":
-        legacy = Path("python/pogls_dashboard_manifest.yaml")
-        if legacy.exists():
-            manifest_path = legacy
-    state = DashboardState(manifest_path.resolve(), cli_repos)
+    state = DashboardState(Path(args.manifest).resolve(), cli_repos)
     Handler.state = state
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     print(f"POGLS Control Room listening on http://{args.host}:{args.port}")
-    print(f"Manifest: {manifest_path.resolve()}")
+    print(f"Manifest: {Path(args.manifest).resolve()}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

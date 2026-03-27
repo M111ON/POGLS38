@@ -1,6 +1,5 @@
 import tempfile
 import unittest
-import zipfile
 from pathlib import Path
 
 from pogls_dashboard.manifest import load_manifest, resolve_manifest
@@ -85,46 +84,7 @@ exports:
             self.assertIn("A:keep.h", snap["files"])
             self.assertNotIn("A:pogls2_v377.zip", snap["files"])
             self.assertEqual(snap["archives"]["A"][0]["version"], "377")
-            self.assertEqual(snap["archives"]["A"][0]["world_count"], 0)
             self.assertTrue(snap["archives"]["A"][0]["excluded"])
-
-    def test_archive_world_count_from_zip_contents(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            repo = root / "repo_a"
-            repo.mkdir()
-            archive = repo / "pogls_migrated_v42.zip"
-            with zipfile.ZipFile(archive, "w") as zf:
-                zf.writestr("world_a/readme.txt", "a")
-                zf.writestr("world_b/readme.txt", "b")
-                zf.writestr("world_c/readme.txt", "c")
-            scanner = DashboardScanner(
-                repos=[RepoConfig("A", str(repo), "live", exclude_globs=["*.zip"])],
-                module_tracking={},
-                links=[],
-            )
-            snap = scanner.scan()
-            self.assertEqual(len(snap["archives"]["A"]), 1)
-            self.assertEqual(snap["archives"]["A"][0]["version"], "42")
-            self.assertEqual(snap["archives"]["A"][0]["world_count"], 3)
-
-    def test_archive_world_count_from_top_level_roots(self):
-        with tempfile.TemporaryDirectory() as td:
-            root = Path(td)
-            repo = root / "repo_a"
-            repo.mkdir()
-            archive = repo / "pogls_migrated_v42.zip"
-            with zipfile.ZipFile(archive, "w") as zf:
-                zf.writestr("POGLS38/readme.txt", "a")
-                zf.writestr("POGLS4/readme.txt", "b")
-                zf.writestr("pogls_core/readme.txt", "c")
-            scanner = DashboardScanner(
-                repos=[RepoConfig("A", str(repo), "live", exclude_globs=["*.zip"])],
-                module_tracking={},
-                links=[],
-            )
-            snap = scanner.scan()
-            self.assertEqual(snap["archives"]["A"][0]["world_count"], 3)
 
 
 if __name__ == '__main__':

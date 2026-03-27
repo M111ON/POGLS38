@@ -3,7 +3,6 @@ from __future__ import annotations
 import ast
 import fnmatch
 import re
-import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -30,7 +29,6 @@ CHECKBOX_RE = re.compile(r"^\s*- \[(?P<done>[ xX])\] (?P<label>.+?)\s*$")
 BACKTICK_FILE_RE = re.compile(r"`([^`]+)`")
 INCLUDE_RE = re.compile(r'^\s*#\s*include\s+"([^"]+)"')
 VERSION_RE = re.compile(r"[vV](\d+(?:[._-]\d+)?)")
-WORLD_TOKEN_RE = re.compile(r"^world(?:[_-]?([a-z0-9]+))?$", re.IGNORECASE)
 
 
 def _safe_rel(path: Path, root: Path) -> str:
@@ -50,29 +48,6 @@ def _is_excluded(rel: str, globs: List[str]) -> bool:
 def _extract_version(name: str) -> str:
     m = VERSION_RE.search(name)
     return m.group(1) if m else ""
-
-
-def _zip_world_count(path: Path) -> int:
-    labels = set()
-    roots = set()
-    try:
-        with zipfile.ZipFile(path, "r") as zf:
-            for entry in zf.namelist():
-                parts = [p for p in entry.replace("\\", "/").split("/") if p]
-                if parts:
-                    roots.add(parts[0].lower())
-                for part in parts:
-                    lower = part.lower()
-                    m = WORLD_TOKEN_RE.match(lower)
-                    if m:
-                        labels.add(m.group(1) or "base")
-                    elif lower.startswith("world_") or lower.startswith("world-"):
-                        labels.add(lower.split("_", 1)[-1].split("-", 1)[-1])
-    except (OSError, zipfile.BadZipFile):
-        return 0
-    if labels:
-        return len(labels)
-    return len(roots) if len(roots) > 1 else 0
 
 
 class DashboardScanner:
@@ -141,7 +116,6 @@ class DashboardScanner:
                         "path": rel,
                         "size": path.stat().st_size,
                         "version": _extract_version(path.name),
-                        "world_count": _zip_world_count(path),
                         "excluded": _is_excluded(rel, repo.exclude_globs),
                     })
                 if _is_excluded(rel, repo.exclude_globs):

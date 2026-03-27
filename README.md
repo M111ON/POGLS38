@@ -28,16 +28,15 @@ Upload `benchmark/pogls_hydra_colab.py` → run single cell
 
 ## Quick Start — Local Project Dashboard
 ```bash
-python3 pogls_dashboard_local.py
+python3 python/pogls_dashboard_local.py
 # open http://127.0.0.1:8787
-# manifest: pogls_dashboard_manifest.yaml
+# manifest: python/pogls_dashboard_manifest.yaml
 # Windows paths example inside manifest:
 #   path: C:\POGLS38
 #   path: C:\POGLS4
 # use exclude_globs to ignore duplicate zip/version folders from source scanning
 # export from UI: JSON / Markdown buttons
 # header shows local machine spec (OS / CPU / RAM / Python / GPU hint)
-# archive table shows inferred world count from ZIP contents (e.g., world_a/world_b/world_c)
 ```
 
 ## Status
