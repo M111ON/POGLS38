@@ -1,45 +1,57 @@
-# POGLS V3.6 — Complete Project Files
-**Positional Geometry Logic Storage**  
-Po · Ratchaburi · March 2026
+# POGLS Repository
 
-## Core Law
-```
-A = floor(θ × 2²⁰)   PHI_UP=1,696,631   PHI_DOWN=648,055
-```
+**Positional Geometry Logic Storage (POGLS)**
 
-## Directory Structure
-```
-core_c/       C headers + sources (V3.6 new + stable deps)
-python/       Python layer (fabric, ingest, delta bridge, memory fabric)
-benchmark/    Full benchmark suites (V3.5 + V3.6, Colab single-cell)
-gui/          Tkinter GUI
-legacy/       Deprecated WAL files (reference only)
-docs/         Project reports (V3.4, V3.5, V3.6)
+This repository now uses a modular root layout with three primary components:
+
+```text
+.
+├── pogls_core/    # Shared core + storage primitives
+├── POGLS4/        # V4x pipeline + tests
+└── POGLS38/       # GPU throughput pipeline + tests
 ```
 
-## Quick Start — AI Memory Fabric
-```bash
-python3 python/pogls_memory_fabric.py
-# POST /remember  GET /recall  running on :7474
-```
+## Root Layout (Current)
 
-## Quick Start — Benchmark (Colab/Kaggle)
-Upload `benchmark/pogls_hydra_colab.py` → run single cell
+### `pogls_core/` — shared core + storage
+- `core_c/`
+  - `pogls_delta.c`
+  - `pogls_delta.h`
+  - `pogls_delta_world_b.c`
+  - `pogls_delta_world_b.h`
+- `storage/`
+  - `pogls_delta.h`
+  - `pogls_shadow_delta_wired.h`
+  - `pogls_spectre.h`
+  - `pogls_spectre_delta_bridge.h`
 
-## Quick Start — Local Project Dashboard
-```bash
-python3 python/pogls_dashboard_local.py
-# open http://127.0.0.1:8787
-# manifest: python/pogls_dashboard_manifest.yaml
-# Windows paths example inside manifest:
-#   path: C:\POGLS38
-#   path: C:\POGLS4
-# use exclude_globs to ignore duplicate zip/version folders from source scanning
-# export from UI: JSON / Markdown buttons
-# header shows local machine spec (OS / CPU / RAM / Python / GPU hint)
-```
+### `POGLS4/` — V4x pipeline + tests
+- Core headers:
+  - `pogls_multi_anchor.h`
+  - `pogls_pipeline_wire.h`
+  - `pogls_qrpn.h`
+  - `pogls_temporal_core.h`
+  - `pogls_v4_snapshot.h`
+  - `pogls_v4x_fed_bridge.h`
+  - `pogls_v4x_wire.h`
+- `tests/`
+  - `test_bridge_compile.c`
+  - `test_federation.c`
+  - `test_v4x_full.c`
+  - `test_v4x_stress.c`
 
-## Status
-- All phases PASS on 5 platforms (Colab CPU/T4, Kaggle CPU/T4/P100)
-- Kaggle P100: 1,031B audit ops in 60s (>1 Trillion) ✅
-- fail=0 across all runs ✅
+### `POGLS38/` — GPU throughput + tests
+- Core headers:
+  - `pogls38_fed_bridge.h`
+  - `pogls38_giant_shadow.h`
+  - `pogls38_hydra_thin.h`
+- `tests/`
+  - `test_38_batch_feed.c`
+  - `test_38_feedback.c`
+  - `test_38_giant_shadow.c`
+  - `test_38_hydra_thin.c`
+  - `test_38_mesh_offset.c`
+
+## Notes
+- Historical/legacy flat files may still exist at repository root for archival continuity.
+- Active modular development should target `pogls_core/`, `POGLS4/`, and `POGLS38/`.
