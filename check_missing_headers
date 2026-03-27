@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+canonical_headers=(
+  "pogls_38_observers.h"
+  "pogls_platform.h"
+  "storage/pogls_delta.h"
+  "storage/pogls_delta_world_b.h"
+  "pogls_38_engine_bridge.h"
+  "pogls_38_engine.h"
+  "pogls_engine_slice.h"
+  "pogls_mesh_entry.h"
+  "pogls_mesh.h"
+)
+
+missing=0
+for h in "${canonical_headers[@]}"; do
+  if [[ ! -f "$h" ]]; then
+    echo "MISSING: $h"
+    missing=$((missing+1))
+  fi
+done
+
+echo "MISSING_HEADERS=$missing"
+[[ $missing -eq 0 ]]
