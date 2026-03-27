@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Thin launcher for the POGLS control room package."""
+"""Thin launcher that routes to the canonical dashboard entrypoint."""
 
-from pogls_dashboard.app import main
+from pogls_dashboard.launcher import run
+
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run())

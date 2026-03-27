@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""Root launcher for the POGLS control room.
-
-Keeps all dashboard runtime assets discoverable from repository root.
-"""
+"""Root launcher routed to the canonical dashboard package in python/."""
 
 from __future__ import annotations
 
@@ -14,8 +11,8 @@ PYTHON_DIR = ROOT / "python"
 if str(PYTHON_DIR) not in sys.path:
     sys.path.insert(0, str(PYTHON_DIR))
 
-from pogls_dashboard.app import main  # noqa: E402
+from pogls_dashboard.launcher import run  # noqa: E402
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run())
