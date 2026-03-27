@@ -4,7 +4,7 @@ version: 1
 #   - name: POGLS38
 #     path: C:\POGLS38
 #   - name: POGLS4
-#     path: C:\POGLS4
+#     path: C:\pogls-4
 repos:
   - name: POGLS38
     path: .
