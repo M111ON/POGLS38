@@ -1,0 +1,27 @@
+{
+  "missing_links": {
+    "enabled": true,
+    "include": ["**/*.md"],
+    "exclude": [".git/**", "**/__pycache__/**"]
+  },
+  "duplicate_drift": {
+    "enabled": true,
+    "pairs": [
+      {
+        "left": "pogls_dashboard",
+        "right": "python/pogls_dashboard",
+        "include": ["**/*.py"]
+      }
+    ]
+  },
+  "artifact_noise": {
+    "enabled": true,
+    "forbid_globs": [
+      "**/__pycache__/**",
+      "**/*.pyc",
+      "**/*.pyo",
+      "**/*.pyd",
+      "*.DS_Store"
+    ]
+  }
+}
