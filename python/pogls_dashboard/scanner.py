@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import ast
 import fnmatch
+import json
 import re
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from .models import FileNode, ManifestLink, ModuleStatus, RepoConfig
 
@@ -65,9 +66,12 @@ class DashboardScanner:
         self._abs_to_id: Dict[str, str] = {}
         self._basename_to_ids: Dict[str, List[str]] = defaultdict(list)
         self._py_module_to_ids: Dict[str, List[str]] = defaultdict(list)
+        self._deprecated_file_ids: Set[str] = set()
+        self._artifact_manifest: Dict[str, object] = {}
 
     def scan(self) -> dict:
         self._index_files()
+        self._apply_artifact_manifest()
         self._parse_links()
         self._link_tests_docs_roadmap()
         self._apply_manifest_tracking()
@@ -166,6 +170,45 @@ class DashboardScanner:
                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                         out.append(node.name)
         return sorted(set(out))[:60]
+
+    def _apply_artifact_manifest(self) -> None:
+        if not self.repos:
+            return
+        manifest_path = Path(self.repos[0].path) / "snapshot_handoff_manifest.json"
+        if not manifest_path.exists():
+            return
+        try:
+            data = json.loads(manifest_path.read_text(encoding="utf-8", errors="ignore"))
+        except json.JSONDecodeError:
+            return
+
+        self._artifact_manifest = data
+        for item in data.get("modules") or []:
+            if not isinstance(item, dict):
+                continue
+            canonical = str(item.get("canonical_module_file") or "").strip()
+            variants = [str(path).strip() for path in (item.get("superseded_variants") or []) if str(path).strip()]
+            if canonical:
+                self._mark_canonical(canonical, variants)
+
+    def _mark_canonical(self, canonical: str, variants: List[str]) -> None:
+        canonical_ids = self._resolve_rel_all_repos(canonical)
+        if not canonical_ids:
+            return
+        for variant in variants:
+            variant_ids = self._resolve_rel_all_repos(variant)
+            for file_id in variant_ids:
+                self._deprecated_file_ids.add(file_id)
+                for canonical_id in canonical_ids:
+                    self._add_edge(file_id, canonical_id, "superseded_by")
+
+    def _resolve_rel_all_repos(self, rel: str) -> List[str]:
+        ids: List[str] = []
+        for repo in self.repos:
+            file_id = f"{repo.name}:{rel}"
+            if file_id in self.files:
+                ids.append(file_id)
+        return ids
 
     def _parse_links(self) -> None:
         for file_id, node in self.files.items():
@@ -272,6 +315,8 @@ class DashboardScanner:
     def _build_duplicates(self) -> None:
         by_basename: Dict[str, List[str]] = defaultdict(list)
         for file_id, node in self.files.items():
+            if file_id in self._deprecated_file_ids:
+                continue
             by_basename[Path(node.path).name].append(file_id)
         for name, ids in by_basename.items():
             if len(ids) > 1:
@@ -326,4 +371,6 @@ class DashboardScanner:
             "runtime_checks": self.runtime_checks,
             "archives": self.archives,
             "duplicates": self.duplicates,
+            "deprecated_files": sorted(self._deprecated_file_ids),
+            "artifact_manifest": self._artifact_manifest,
         }
